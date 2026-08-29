@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horizon Admin Panel</title>
+    <style>
+        body { font-family: sans-serif; background: #0f172a; color: #fff; padding: 2rem; }
+        .container { max-width: 800px; margin: auto; background: #1e293b; padding: 2rem; border-radius: 1rem; }
+        input, button { padding: 0.5rem; margin: 0.5rem; border-radius: 0.5rem; border: none; }
+        button { cursor: pointer; background: #2563eb; color: #fff; }
+        .section { border-bottom: 1px solid #334155; padding-bottom: 1rem; margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Horizon Admin Control</h1>
+        <div class="section">
+            <h3>System Init</h3>
+            <input type="password" id="adminKey" placeholder="Admin Token (X-Admin-Key)">
+            <button onclick="initSystem()">Initialize System</button>
+            <button onclick="shutdownSystem()">Shutdown System</button>
+            <p id="statusMsg"></p>
+        </div>
+        <div class="section">
+            <h3>Generate License</h3>
+            <input type="text" id="productID" placeholder="Product ID">
+            <input type="text" id="userID" placeholder="User ID">
+            <input type="number" id="duration" placeholder="Hours">
+            <button onclick="generateLicense()">Generate</button>
+            <p id="licMsg"></p>
+        </div>
+        <div class="section">
+            <h3>List Licenses</h3>
+            <button onclick="listLicenses()">Refresh List</button>
+            <pre id="licList"></pre>
+        </div>
+    </div>
+
+    <script>
+        const API = '/api/v1';
+        const adminKey = () => document.getElementById('adminKey').value;
+        const apiKey = prompt('Please enter API Key'); // Client-side api key for normal operations
+
+        async function initSystem() {
+            let res = await fetch(API + '/init', { method: 'POST', headers: { 'X-Admin-Key': adminKey() } });
+            document.getElementById('statusMsg').innerText = await res.text();
+        }
+
+        async function shutdownSystem() {
+            let res = await fetch(API + '/shutdown', { method: 'POST', headers: { 'X-Admin-Key': adminKey() } });
+            document.getElementById('statusMsg').innerText = await res.text();
+        }
+
+        async function generateLicense() {
+            let body = { product_id: document.getElementById('productID').value, user_id: document.getElementById('userID').value, duration: parseInt(document.getElementById('duration').value) };
+            let res = await fetch(API + '/license/generate', { method: 'POST', headers: { 'X-API-Key': apiKey, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            let data = await res.json();
+            document.getElementById('licMsg').innerText = JSON.stringify(data, null, 2);
+        }
+
+        async function listLicenses() {
+            let res = await fetch(API + '/licenses', { headers: { 'X-API-Key': apiKey } });
+            let data = await res.json();
+            document.getElementById('licList').innerText = JSON.stringify(data, null, 2);
+        }
+    </script>
+</body>
+</html>
