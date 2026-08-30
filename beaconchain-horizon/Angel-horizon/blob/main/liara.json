@@ -6,14 +6,15 @@
   },
   "env": {
     "PORT": "8080",
-    "DB_HOST": "your_db_host",
+    "DB_HOST": "horizon",
     "DB_PORT": "5432",
-    "DB_USER": "your_db_user",
-    "DB_PASSWORD": "your_db_password",
-    "DB_NAME": "your_db_name",
-    "ADMIN_TOKEN": "your_admin_token",
-    "API_KEY": "your_api_key",
-    "ECDSA_PRIVATE_KEY": "your_ecdsa_private_key_base64"
+    "DB_USER": "root",
+    "DB_PASSWORD": "KrWfSJFMQlPqbGMqMyMwgGad",
+    "DB_NAME": "horizon",
+    "DATABASE_URL": "postgresql://root:KrWfSJFMQlPqbGMqMyMwgGad@horizon:5432/horizon?sslmode=disable",
+    "ADMIN_TOKEN": "KrWfSJFMQlPqbGMqMyMwgGad",
+    "API_KEY": "KrWfSJFMQlPqbGMqMyMwgGad",
+    "SERVER_PORT": "8080"
   },
   "ports": [
     {
