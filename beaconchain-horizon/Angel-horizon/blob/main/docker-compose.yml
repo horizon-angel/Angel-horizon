@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  horizon:
+    build: .
+    container_name: horizon_angel_test
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=horizon
+      - ADMIN_TOKEN=test_admin_123
+      - API_KEY=test_api_456
+      - ECDSA_PRIVATE_KEY=
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: horizon_db_test
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=horizon
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
