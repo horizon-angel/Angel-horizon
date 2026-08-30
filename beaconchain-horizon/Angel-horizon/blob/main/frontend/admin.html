@@ -1,69 +1,232 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Horizon Admin Panel</title>
+    <title>پنل مدیریت Horizon | بانک‌ها و ادارات</title>
     <style>
-        body { font-family: sans-serif; background: #0f172a; color: #fff; padding: 2rem; }
-        .container { max-width: 800px; margin: auto; background: #1e293b; padding: 2rem; border-radius: 1rem; }
-        input, button { padding: 0.5rem; margin: 0.5rem; border-radius: 0.5rem; border: none; }
-        button { cursor: pointer; background: #2563eb; color: #fff; }
-        .section { border-bottom: 1px solid #334155; padding-bottom: 1rem; margin-bottom: 1rem; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Vazirmatn', sans-serif; }
+        body { background: #060b18; color: #eef2ff; padding: 1rem; }
+        .container { max-width: 1400px; margin: auto; }
+        .header { display: flex; justify-content: space-between; padding: 1rem; background: rgba(20,26,44,0.7); border-radius: 1rem; margin-bottom: 1rem; }
+        .badge { padding: 0.3rem 1rem; border-radius: 50px; font-size: 0.8rem; }
+        .green { background: #4ade80; color: #000; }
+        .red { background: #f87171; color: #000; }
+        .card { background: #0f172a; border: 1px solid #1a2240; border-radius: 1rem; padding: 1.5rem; margin-bottom: 1rem; }
+        input, select, button { padding: 0.6rem; margin: 0.3rem; border-radius: 0.5rem; border: 1px solid #333; background: #020617; color: #fff; width: 100%; }
+        button { cursor: pointer; background: #4f9eff; color: #000; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { padding: 0.8rem; text-align: right; border-bottom: 1px solid #333; font-size: 0.85rem; }
+        .section-title { margin-bottom: 1rem; color: #4f9eff; border-right: 3px solid #4f9eff; padding-right: 0.5rem; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Horizon Admin Control</h1>
-        <div class="section">
-            <h3>System Init</h3>
-            <input type="password" id="adminKey" placeholder="Admin Token (X-Admin-Key)">
-            <button onclick="initSystem()">Initialize System</button>
-            <button onclick="shutdownSystem()">Shutdown System</button>
-            <p id="statusMsg"></p>
+<div class="container">
+    <div class="header">
+        <div>
+            <h2>پنل مدیریت Horizon Angel</h2>
+            <small>ویژه خدمات بانکی، ادارات و سازمان‌ها (غیر از صرافی)</small>
         </div>
-        <div class="section">
-            <h3>Generate License</h3>
-            <input type="text" id="productID" placeholder="Product ID">
-            <input type="text" id="userID" placeholder="User ID">
-            <input type="number" id="duration" placeholder="Hours">
-            <button onclick="generateLicense()">Generate</button>
-            <p id="licMsg"></p>
-        </div>
-        <div class="section">
-            <h3>List Licenses</h3>
-            <button onclick="listLicenses()">Refresh List</button>
-            <pre id="licList"></pre>
+        <div>
+            <span class="badge red" id="statusBadge">سیستم خاموش است</span>
         </div>
     </div>
 
-    <script>
-        const API = '/api/v1';
-        const adminKey = () => document.getElementById('adminKey').value;
-        const apiKey = prompt('Please enter API Key'); // Client-side api key for normal operations
+    <!-- بخش استارت و کنترل سیستم -->
+    <div class="card">
+        <h3 class="section-title">۱. کنترل اصلی سیستم</h3>
+        <div class="grid-2">
+            <div>
+                <input type="password" id="adminToken" placeholder="کلید مدیریت (ADMIN_TOKEN)">
+                <button onclick="initSystem()">استارت اکوسیستم</button>
+            </div>
+            <div>
+                <button onclick="shutdownSystem()" style="background:#f87171;">خاموش کردن سیستم</button>
+                <button onclick="checkHealth()" style="background:#4ade80;">بررسی سلامت سرور</button>
+            </div>
+        </div>
+        <div id="systemMsg" style="margin-top:1rem; color:#facc15; font-weight:bold;"></div>
+    </div>
 
-        async function initSystem() {
-            let res = await fetch(API + '/init', { method: 'POST', headers: { 'X-Admin-Key': adminKey() } });
-            document.getElementById('statusMsg').innerText = await res.text();
-        }
+    <!-- بخش تولید لایسنس -->
+    <div class="card">
+        <h3 class="section-title">۲. خط تولید لایسنس (ویژه بانک‌ها / ادارات)</h3>
+        <div class="grid-2">
+            <div>
+                <label>شناسه محصول (Product ID)</label>
+                <input type="text" id="productId" value="horizon-bank-service">
+                <label>شناسه مشتری (User ID)</label>
+                <input type="text" id="userId" placeholder="مثلا: bank_melli">
+                <label>مدت اعتبار (ساعت)</label>
+                <input type="number" id="duration" value="8760">
+                <button onclick="generateLicense()" style="background:#c084fc;">تولید لایسنس جدید</button>
+            </div>
+            <div>
+                <div id="generatedLicenseBox" style="background:#020617; padding:1rem; border-radius:0.5rem; border:1px solid #c084fc; min-height:100px;">
+                    <small>خروجی لایسنس اینجا نمایش داده می‌شود...</small>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        async function shutdownSystem() {
-            let res = await fetch(API + '/shutdown', { method: 'POST', headers: { 'X-Admin-Key': adminKey() } });
-            document.getElementById('statusMsg').innerText = await res.text();
-        }
+    <!-- بخش تراکنش‌ها و مشتریان -->
+    <div class="card">
+        <h3 class="section-title">۳. تراکنش‌ها و مشتریان (خدمات سازمانی)</h3>
+        <div class="grid-2">
+            <div>
+                <h4 style="margin-bottom:0.5rem;">لیست تراکنش‌ها</h4>
+                <button onclick="loadTransactions()" style="background:#4f9eff;">بارگذاری تراکنش‌ها</button>
+                <table>
+                    <thead><tr><th>شناسه</th><th>مبلغ</th><th>وضعیت</th></tr></thead>
+                    <tbody id="txBody"><tr><td colspan="3">در انتظار بارگذاری...</td></tr></tbody>
+                </table>
+            </div>
+            <div>
+                <h4 style="margin-bottom:0.5rem;">لیست مشتریان (بانک‌ها / ادارات)</h4>
+                <button onclick="loadCustomers()" style="background:#4f9eff;">بارگذاری مشتریان</button>
+                <table>
+                    <thead><tr><th>نام</th><th>ایمیل</th><th>کیف پول</th></tr></thead>
+                    <tbody id="custBody"><tr><td colspan="3">در انتظار بارگذاری...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
-        async function generateLicense() {
-            let body = { product_id: document.getElementById('productID').value, user_id: document.getElementById('userID').value, duration: parseInt(document.getElementById('duration').value) };
-            let res = await fetch(API + '/license/generate', { method: 'POST', headers: { 'X-API-Key': apiKey, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-            let data = await res.json();
-            document.getElementById('licMsg').innerText = JSON.stringify(data, null, 2);
-        }
+    <!-- بخش مدیریت لایسنس‌های صادر شده -->
+    <div class="card">
+        <h3 class="section-title">۴. لیست لایسنس‌های صادر شده</h3>
+        <button onclick="loadLicenses()" style="background:#4f9eff;">به‌روزرسانی لیست لایسنس‌ها</button>
+        <table>
+            <thead><tr><th>ID</th><th>محصول</th><th>کاربر</th><th>انقضا</th><th>وضعیت</th></tr></thead>
+            <tbody id="licBody"><tr><td colspan="5">در انتظار بارگذاری...</td></tr></tbody>
+        </table>
+    </div>
+</div>
 
-        async function listLicenses() {
-            let res = await fetch(API + '/licenses', { headers: { 'X-API-Key': apiKey } });
-            let data = await res.json();
-            document.getElementById('licList').innerText = JSON.stringify(data, null, 2);
+<script>
+    // تنظیمات اصلی: آدرس بک‌اند (این را با آدرس لیارا عوض کن)
+    const API_BASE = 'https://angel-horizon-api.liara.run/api/v1';
+
+    // دریافت توکن‌ها
+    const getAdminToken = () => document.getElementById('adminToken').value;
+    const getApiKey = () => prompt('لطفاً API_KEY را وارد کنید:'); // برای امنیت، کلید API را همین‌جا می‌پرسیم
+
+    async function request(url, options = {}) {
+        try {
+            const response = await fetch(API_BASE + url, options);
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'خطا در ارتباط با سرور');
+            return data;
+        } catch (e) {
+            throw new Error(e.message || 'ارتباط با سرور برقرار نشد');
         }
-    </script>
+    }
+
+    // استارت سیستم
+    async function initSystem() {
+        try {
+            const res = await fetch(API_BASE + '/init', {
+                method: 'POST',
+                headers: { 'X-Admin-Key': getAdminToken() }
+            });
+            document.getElementById('systemMsg').innerText = '✅ سیستم با موفقیت استارت خورد!';
+            document.getElementById('statusBadge').className = 'badge green';
+            document.getElementById('statusBadge').innerText = 'سیستم آنلاین است';
+        } catch (e) { alert('خطا در استارت: ' + e.message); }
+    }
+
+    // خاموش کردن سیستم
+    async function shutdownSystem() {
+        try {
+            await fetch(API_BASE + '/shutdown', {
+                method: 'POST',
+                headers: { 'X-Admin-Key': getAdminToken() }
+            });
+            document.getElementById('systemMsg').innerText = '⛔ سیستم خاموش شد.';
+            document.getElementById('statusBadge').className = 'badge red';
+            document.getElementById('statusBadge').innerText = 'سیستم خاموش است';
+        } catch (e) { alert('خطا در خاموش کردن: ' + e.message); }
+    }
+
+    // تولید لایسنس
+    async function generateLicense() {
+        const body = {
+            product_id: document.getElementById('productId').value,
+            user_id: document.getElementById('userId').value,
+            duration: parseInt(document.getElementById('duration').value)
+        };
+        try {
+            const apiKey = getApiKey();
+            const lic = await request('/license/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey },
+                body: JSON.stringify(body)
+            });
+            document.getElementById('generatedLicenseBox').innerHTML = `
+                <strong>✅ لایسنس تولید شد!</strong><br>
+                ID: ${lic.id}<br>
+                کاربر: ${lic.user_id}<br>
+                انقضا: ${lic.expires_at}<br>
+                امضا: ${lic.signature ? lic.signature.substring(0, 20) + '...' : 'N/A'}
+            `;
+        } catch (e) { alert('خطا در تولید: ' + e.message); }
+    }
+
+    // لیست لایسنس‌ها
+    async function loadLicenses() {
+        try {
+            const apiKey = getApiKey();
+            const data = await request('/licenses', { headers: { 'X-API-Key': apiKey } });
+            const tbody = document.getElementById('licBody');
+            tbody.innerHTML = '';
+            if (data.length === 0) tbody.innerHTML = '<tr><td colspan="5">هیچ لایسنس فعالی نیست</td></tr>';
+            data.forEach(l => {
+                tbody.innerHTML += `<tr><td>${l.id}</td><td>${l.product_id}</td><td>${l.user_id}</td><td>${l.expires_at}</td><td>${l.active ? '🟢 فعال' : '🔴 غیرفعال'}</td></tr>`;
+            });
+        } catch (e) { alert('خطا در لیست لایسنس‌ها: ' + e.message); }
+    }
+
+    // بارگذاری تراکنش‌ها
+    async function loadTransactions() {
+        try {
+            const apiKey = getApiKey();
+            // مسیر تراکنش‌ها را از بک‌اند خودت (در صورت وجود) صدا بزن
+            const data = await request('/payments', { headers: { 'X-API-Key': apiKey } });
+            const tbody = document.getElementById('txBody');
+            tbody.innerHTML = '';
+            if (data.length === 0) tbody.innerHTML = '<tr><td colspan="3">تراکنشی یافت نشد</td></tr>';
+            data.forEach(p => {
+                tbody.innerHTML += `<tr><td>${p.id}</td><td>${p.amount} ${p.currency}</td><td>${p.status || 'موفق'}</td></tr>`;
+            });
+        } catch (e) { 
+            // اگر بک‌اند این مسیر را نداشت، پیام مناسب نشان بده
+            document.getElementById('txBody').innerHTML = '<tr><td colspan="3">خطا: مسیر پرداخت در بک‌اند تعریف نشده است. لطفاً مسیر /api/v1/payments را به بک‌اند اضافه کنید.</td></tr>';
+        }
+    }
+
+    // بارگذاری مشتریان
+    async function loadCustomers() {
+        try {
+            const apiKey = getApiKey();
+            const data = await request('/customers', { headers: { 'X-API-Key': apiKey } });
+            const tbody = document.getElementById('custBody');
+            tbody.innerHTML = '';
+            if (data.length === 0) tbody.innerHTML = '<tr><td colspan="3">مشتری‌ای یافت نشد</td></tr>';
+            data.forEach(c => {
+                tbody.innerHTML += `<tr><td>${c.full_name || c.name}</td><td>${c.email}</td><td>${c.wallet}</td></tr>`;
+            });
+        } catch (e) { alert('خطا در لیست مشتریان: ' + e.message); }
+    }
+
+    // بررسی سلامت سرور
+    async function checkHealth() {
+        try {
+            const res = await fetch(API_BASE + '/health');
+            if (res.ok) alert('✅ سرور آنلاین است!');
+        } catch (e) { alert('❌ سرور در دسترس نیست.'); }
+    }
+</script>
 </body>
 </html>
