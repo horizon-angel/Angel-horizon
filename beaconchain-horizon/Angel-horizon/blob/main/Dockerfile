@@ -5,14 +5,22 @@ FROM golang:1.21-alpine AS builder
 
 WORKDIR /app
 
-# Download dependencies
+# Copy module files
 COPY go.mod go.sum ./
+
+# Download dependencies
 RUN go mod download
 
-# Copy source code
+# ============ Fix for go.sum mismatch ============
+# This command syncs go.sum with go.mod, removing outdated entries
+# and adding missing ones without touching your source code
+# ==================================================
+RUN go mod tidy
+
+# Copy the rest of the source code
 COPY . .
 
-# Build the main binary (horizon angel core)
+# Build the main binary
 RUN go build -o horizon ./main.go
 
 # ============================================
